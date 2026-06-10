@@ -96,13 +96,13 @@ public class MazeApp extends JFrame {
 
                     config.parseJson(sb.toString());
 
-                    SwingUtilities.invokeLater(() -> {
+                    new Thread(() -> {
                         wallColorLabel.setText("#" + Integer.toHexString(config.wallCellColor.getRGB()).substring(2).toUpperCase());
                         pathColorLabel.setText("#" + Integer.toHexString(config.pathColor.getRGB()).substring(2).toUpperCase());
                         gridStatusLabel.setText(config.drawGrid ? "כן (True)" : "לא (False)");
                         gridColorLabel.setText("#" + Integer.toHexString(config.gridColor.getRGB()).substring(2).toUpperCase());
                         delayLabel.setText(config.animationDelayMs + " ms");
-                    });
+                    }).start();
                 }
             } catch (Exception ex) { ex.printStackTrace(); }
         }).start();
@@ -112,7 +112,16 @@ public class MazeApp extends JFrame {
         try {
             mazeWidth = Integer.parseInt(widthField.getText().trim());
             mazeHeight = Integer.parseInt(heightField.getText().trim());
-        } catch (Exception e) { mazeWidth = 30; mazeHeight = 30; }
+            if(mazeWidth < 5 || mazeWidth > 100) {
+                mazeWidth = 30;
+            }
+            if(mazeHeight < 5 || mazeHeight > 100) {
+                mazeHeight = 30;
+            }
+        } catch (Exception e) {
+            mazeWidth = 30;
+            mazeHeight = 30;
+        }
 
         solutionPath.clear(); animatedPath.clear();
 
@@ -133,10 +142,10 @@ public class MazeApp extends JFrame {
                             mazeMatrix[y][x] = (((rgb >> 16) & 0xFF) == 255 && ((rgb >> 8) & 0xFF) == 255 && (rgb & 0xFF) == 255);
                         }
                     }
-                    SwingUtilities.invokeLater(() -> {
+                    new Thread(() -> {
                         mazePanel.updateData(mazeMatrix, animatedPath);
                         cardLayout.show(mainContainer, "GAME");
-                    });
+                    }).start();
                 }
             } catch (Exception ex) { ex.printStackTrace(); }
         }).start();
@@ -153,13 +162,17 @@ public class MazeApp extends JFrame {
         new Thread(() -> {
             try {
                 for (Point p : solutionPath) {
-                    animatedPath.add(p); SwingUtilities.invokeLater(() -> mazePanel.repaint());
+                    animatedPath.add(p);
+                    new Thread(() -> mazePanel.repaint()).start();
                     Thread.sleep(config.animationDelayMs);
                 }
             } catch (Exception e) { e.printStackTrace(); }
-            finally { isAnimating = false; SwingUtilities.invokeLater(() -> checkSolutionButton.setEnabled(true)); }
+            finally {
+                isAnimating = false;
+                new Thread(() -> checkSolutionButton.setEnabled(true)).start();
+            }
         }).start();
     }
 
-    public static void main(String[] args) { SwingUtilities.invokeLater(MazeApp::new); }
+    public static void main(String[] args) {new Thread(MazeApp::new).start(); }
 }

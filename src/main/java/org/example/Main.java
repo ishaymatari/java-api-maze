@@ -1,10 +1,13 @@
 package org.example;
 
-import javax.swing.SwingUtilities;
-
 public class Main {
     public static void main(String[] args) {
-        // הפעלת חלון המבוך בצורה בטוחה ב-Thread של ה-UI
-        SwingUtilities.invokeLater(MazeApp::new);
+        // הפעלת חלון המבוך באמצעות Thread עצמאי כפי שנדרש בלימודים
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                new MazeApp();
+            }
+        }).start();
     }
 }
